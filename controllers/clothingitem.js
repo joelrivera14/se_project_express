@@ -12,6 +12,15 @@ const createItem = (req, res) => {
     });
 };
 
+const getItems = (req, res) => {
+  ClothingItem.find({})
+    .then((items) => res.status(200).send(items))
+    .catch((e) => {
+      res.status(500).send({ message: "error from  getItems", e });
+    });
+};
+
 module.exports = {
   createItem,
+  getItems,
 };
