@@ -32,8 +32,49 @@ const updateItems = (req, res) => {
     });
 };
 
+const deleteItems = (req, res) => {
+  const { itemId } = req.params;
+  console.log(itemId);
+  ClothingItem.findByIdAndDelete(itemId)
+    .orFail()
+    .then((item) => res.status(204).send({}))
+    .catch((e) => {
+      res.status(500).send({ message: "error from  deleteItems", e });
+    });
+};
+
+const likeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then(() =>
+      res.status(200).send({ message: "Item has successfully been liked" })
+    )
+    .catch((e) => {
+      res.status(500).send({ message: "error from  likeItem", e });
+    });
+};
+const disLikeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail()
+    .then((item) => res.status(200).send({ data: item }))
+    .catch((e) => {
+      res.status(500).send({ message: "error from  dislikeItem", e });
+    });
+};
+
 module.exports = {
   createItem,
   getItems,
   updateItems,
+  deleteItems,
+  likeItem,
+  disLikeItem,
 };
