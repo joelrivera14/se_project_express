@@ -1,10 +1,42 @@
 const User = require("../models/user");
+const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
+
+const regularItemError = (req, res, err) => {
+  console.error(err);
+  if (err.name === "ValidationError" || err.name === "AssertionError") {
+    return res.status(ERROR_400).send({
+      message: "Invalid data passed for creating or updating an item.",
+    });
+  } else if (err.name === "CastError") {
+    return res.status(ERROR_400).send({
+      message: "Invalid ID.",
+    });
+  }
+  return res.status(ERROR_500).send({ message: "An error has occurred" });
+};
+
+const findByIdItemError = (req, res, err) => {
+  if (
+    err.name === "CastError" ||
+    err.name === "ValidationError" ||
+    err.name === "AssertionError"
+  ) {
+    return res.status(ERROR_400).send({
+      message: "Invalid data passed for creating or updating an item.",
+    });
+  } else if (err.name === "DocumentNotFoundError") {
+    return res.status(ERROR_404).send({
+      message: "Invalid ID.",
+    });
+  }
+  return res.status(ERROR_500).send({ message: "An error has occurred" });
+};
 
 const getUser = (req, res) => {
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((e) => {
-      res.status(500).send({ message: "error from  getUserId", e });
+      regularItemError(req, res, e);
     });
 };
 
@@ -15,7 +47,7 @@ const getUserId = (req, res) => {
     .orFail()
     .then((user) => res.status(200).send({ data: user }))
     .catch((e) => {
-      res.status(500).send({ message: "error from  getUserId", e });
+      findByIdItemError(req, res, e);
     });
 };
 
@@ -28,7 +60,7 @@ const createUser = (req, res) => {
       res.send({ data: user });
     })
     .catch((e) => {
-      res.status(500).send({ message: "error from  createUser", e });
+      regularItemError(req, res, e);
     });
 };
 

@@ -19,10 +19,10 @@ router.get("/", getItems);
 
 //update
 router.put("/:itemId", updateItems);
-router.put("/items/:itemId/likes", likeItem);
+router.put("/:itemId/likes", likeItem);
 
 //delete
 router.delete("/:itemId", deleteItems);
-router.delete("/items/:itemId/likes", disLikeItem);
+router.delete("/:itemId/likes", disLikeItem);
 
 module.exports = router;
