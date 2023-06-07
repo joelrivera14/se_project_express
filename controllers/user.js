@@ -3,9 +3,9 @@ const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
   console.error(err);
-  if (err.name === "ValidationError" || err.name === "AssertionError") {
+  if (err.name === "ValidationError") {
     return res.status(ERROR_400).send({
-      message: "Invalid data passed for creating or updating an item.",
+      message: "Invalid data passed for creating or updating a user.",
     });
   } else if (err.name === "CastError") {
     return res.status(ERROR_400).send({
@@ -16,13 +16,9 @@ const regularItemError = (req, res, err) => {
 };
 
 const findByIdItemError = (req, res, err) => {
-  if (
-    err.name === "CastError" ||
-    err.name === "ValidationError" ||
-    err.name === "AssertionError"
-  ) {
+  if (err.name === "CastError" || err.name === "ValidationError") {
     return res.status(ERROR_400).send({
-      message: "Invalid data passed for creating or updating an item.",
+      message: "Invalid data passed for creating or updating a user.",
     });
   } else if (err.name === "DocumentNotFoundError") {
     return res.status(ERROR_404).send({

@@ -3,7 +3,7 @@ const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
   console.error(err);
-  if (err.name === "ValidationError" || err.name === "AssertionError") {
+  if (err.name === "ValidationError") {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating an item.",
     });
@@ -16,11 +16,7 @@ const regularItemError = (req, res, err) => {
 };
 
 const findByIdItemError = (req, res, err) => {
-  if (
-    err.name === "CastError" ||
-    err.name === "ValidationError" ||
-    err.name === "AssertionError"
-  ) {
+  if (err.name === "CastError" || err.name === "ValidationError") {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating an item.",
     });
@@ -33,9 +29,9 @@ const findByIdItemError = (req, res, err) => {
 };
 
 const createItem = (req, res) => {
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({ name, weather, imageURL })
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => {
       res.send({ data: item });
     })
@@ -54,9 +50,9 @@ const getItems = (req, res) => {
 
 const updateItems = (req, res) => {
   const { itemId } = req.params;
-  const { imageURL } = req.body;
+  const { imageUrl } = req.body;
 
-  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageURL } })
+  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
@@ -69,7 +65,7 @@ const deleteItems = (req, res) => {
   console.log(itemId);
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send({}))
+    .then((item) => res.status(204).send({ item }))
     .catch((e) => {
       findByIdItemError(req, res, e);
     });
