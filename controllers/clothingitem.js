@@ -2,12 +2,12 @@ const ClothingItem = require("../models/clothingitem");
 const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
-  console.error(err);
   if (err.name === "ValidationError") {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating an item.",
     });
-  } else if (err.name === "CastError") {
+  }
+  if (err.name === "CastError") {
     return res.status(ERROR_400).send({
       message: "Invalid ID.",
     });
@@ -20,7 +20,8 @@ const findByIdItemError = (req, res, err) => {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating an item.",
     });
-  } else if (err.name === "DocumentNotFoundError") {
+  }
+  if (err.name === "DocumentNotFoundError") {
     return res.status(ERROR_404).send({
       message: "Invalid ID.",
     });
@@ -62,7 +63,7 @@ const updateItems = (req, res) => {
 
 const deleteItems = (req, res) => {
   const { itemId } = req.params;
-  console.log(itemId);
+
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
     .then((item) => res.status(200).send({ item }))

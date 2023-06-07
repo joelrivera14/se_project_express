@@ -2,12 +2,12 @@ const User = require("../models/user");
 const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
-  console.error(err);
   if (err.name === "ValidationError") {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating a user.",
     });
-  } else if (err.name === "CastError") {
+  }
+  if (err.name === "CastError") {
     return res.status(ERROR_400).send({
       message: "Invalid ID.",
     });
@@ -20,7 +20,8 @@ const findByIdItemError = (req, res, err) => {
     return res.status(ERROR_400).send({
       message: "Invalid data passed for creating or updating a user.",
     });
-  } else if (err.name === "DocumentNotFoundError") {
+  }
+  if (err.name === "DocumentNotFoundError") {
     return res.status(ERROR_404).send({
       message: "Invalid ID.",
     });
@@ -48,7 +49,6 @@ const getUserId = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  console.log(req);
   const { name, avatar } = req.body;
 
   User.create({ name, avatar })
