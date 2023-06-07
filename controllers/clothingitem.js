@@ -65,7 +65,7 @@ const deleteItems = (req, res) => {
   console.log(itemId);
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(204).send({ item }))
+    .then((item) => res.status(200).send({ item }))
     .catch((e) => {
       findByIdItemError(req, res, e);
     });
