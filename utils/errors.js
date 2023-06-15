@@ -2,8 +2,22 @@ const ERROR_400 = 400;
 const ERROR_404 = 404;
 const ERROR_500 = 500;
 
+const errors = {
+  MOVED_PERM: 301,
+  FOUND: 302,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  NOT_ALLOWED: 405,
+  DUPLICATE: 409,
+  SERVER_ERROR: 500,
+  NOT_IMPLEMENTED: 501,
+};
+
 module.exports = {
   ERROR_400,
   ERROR_404,
   ERROR_500,
+  errors,
 };

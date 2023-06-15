@@ -1,5 +1,8 @@
 const User = require("../models/user");
-const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
+const bcrypt = require("bcryptjs");
+const { ERROR_400, ERROR_404, ERROR_500, errors } = require("../utils/errors");
+const { JWT_SECRET } = require("../utils/config");
+const jwt = require("jsonwebtoken");
 
 const regularItemError = (req, res, err) => {
   if (err.name === "ValidationError") {
@@ -49,11 +52,65 @@ const getUserId = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, avatar } = req.body;
+  const { name, avatar, email, password } = req.body;
 
-  User.create({ name, avatar })
+  User.findOne({ email }).then((previousUser) => {
+    if (previousUser) {
+      const userError = new Error("Email already exist");
+      userError.status = error.DUPLICATE;
+      userError.name = "Duplicate";
+      throw userError;
+    }
+    return bcrypt.hash(password, 10);
+  });
+
+  User.create({ name, avatar, email, password: hash })
     .then((user) => {
       res.send({ data: user });
+    })
+    .catch((e) => {
+      regularItemError(req, res, e);
+    });
+};
+
+const loginUser = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send({ token });
+    })
+    .catch((e) => {
+      findByIdItemError(req, res, e);
+    });
+};
+
+const getCurrentUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail()
+    .then((user) => res.send({ user }))
+    .catch((e) => findByIdItemError(req, res, e));
+};
+
+const updateUser = (req, res) => {
+  const { name, avatar } = req.body;
+  const update = { name, avatar };
+
+  User.findOneAndUpdate({ _id: req.user._id }, update, {
+    new: true,
+    runValidators: true,
+  })
+    .then((user) => {
+      if (!user) {
+        const err = new Error("User not found");
+        err.status = errors.NOT_FOUND;
+        err.name = "NotFound";
+        throw err;
+      }
+      res.send({ data: { user, message: "Username updated successfully" } });
     })
     .catch((e) => {
       regularItemError(req, res, e);
@@ -64,4 +121,7 @@ module.exports = {
   getUser,
   getUserId,
   createUser,
+  loginUser,
+  getCurrentUser,
+  updateUser,
 };
