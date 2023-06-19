@@ -1,8 +1,8 @@
-const User = require("../models/user");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/user");
 const { ERROR_400, ERROR_404, ERROR_500, errors } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
-const jwt = require("jsonwebtoken");
 
 const regularItemError = (req, res, err) => {
   if (err.name === "ValidationError") {
