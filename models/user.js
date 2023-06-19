@@ -28,10 +28,6 @@ const user = new mongoose.Schema({
     type: String,
     required: true,
     select: false,
-    validate: {
-      validator: (v) => validator.isURL(v),
-      message: "You must enter a valid Password",
-    },
   },
 });
 

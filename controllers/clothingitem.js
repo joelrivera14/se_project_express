@@ -1,5 +1,5 @@
 const ClothingItem = require("../models/clothingitem");
-const { ERROR_400, ERROR_404, ERROR_500 } = require("../utils/errors");
+const { ERROR_400, ERROR_404, ERROR_500, errors } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
   if (err.name === "ValidationError") {
@@ -66,7 +66,17 @@ const deleteItems = (req, res) => {
 
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(200).send({ item }))
+    .then((item) => {
+      if (String(item.owner) !== req.user._id) {
+        const err = new Error("You are not authorized to delete this item");
+        err.status = errors.FORBIDDEN;
+        err.name = "Forbidden";
+        throw err;
+      }
+      return item.deleteOne().then(() => {
+        res.send({ message: "Item removed" });
+      });
+    })
     .catch((e) => {
       findByIdItemError(req, res, e);
     });

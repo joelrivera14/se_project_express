@@ -54,21 +54,24 @@ const getUserId = (req, res) => {
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
-  User.findOne({ email }).then((previousUser) => {
-    if (previousUser) {
-      const userError = new Error("Email already exist");
-      userError.status = error.DUPLICATE;
-      userError.name = "Duplicate";
-      throw userError;
-    }
-    return bcrypt.hash(password, 10);
-  });
-
-  User.create({ name, avatar, email, password: hash })
+  User.findOne({ email })
+    .then((previousUser) => {
+      if (previousUser) {
+        const userError = new Error("Email already exist");
+        userError.status = errors.DUPLICATE;
+        userError.name = "Duplicate";
+        throw userError;
+      }
+      return bcrypt.hash(password, 10);
+    })
+    .then((hash) => {
+      return User.create({ name, avatar, email, password: hash });
+    })
     .then((user) => {
       res.send({ data: user });
     })
     .catch((e) => {
+      console.log(e);
       regularItemError(req, res, e);
     });
 };
