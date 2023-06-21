@@ -1,35 +1,39 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
-const { ERROR_400, ERROR_404, ERROR_500, errors } = require("../utils/errors");
+const { errors } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
 const regularItemError = (req, res, err) => {
   if (err.name === "ValidationError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating a user.",
     });
   }
   if (err.name === "CastError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid ID.",
     });
   }
-  return res.status(ERROR_500).send({ message: "An error has occurred" });
+  return res
+    .status(errors.SERVER_ERROR)
+    .send({ message: "An error has occurred" });
 };
 
 const findByIdItemError = (req, res, err) => {
   if (err.name === "CastError" || err.name === "ValidationError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating a user.",
     });
   }
   if (err.name === "DocumentNotFoundError") {
-    return res.status(ERROR_404).send({
+    return res.status(errors.NOT_FOUND).send({
       message: "Invalid ID.",
     });
   }
-  return res.status(ERROR_500).send({ message: "An error has occurred" });
+  return res
+    .status(errors.SERVER_ERROR)
+    .send({ message: "An error has occurred" });
 };
 
 const getUser = (req, res) => {
@@ -60,7 +64,9 @@ const createUser = (req, res) => {
         const userError = new Error("Email already exist");
         userError.status = errors.DUPLICATE;
         userError.name = "Duplicate";
-        throw userError;
+        return res
+          .status(errors.DUPLICATE)
+          .send({ message: "Email already exist" });
       }
       return bcrypt.hash(password, 10);
     })
@@ -68,7 +74,9 @@ const createUser = (req, res) => {
       return User.create({ name, avatar, email, password: hash });
     })
     .then((user) => {
-      res.send({ data: user });
+      res.send({
+        data: { name: user.name, avatar: user.avatar, email: user.email },
+      });
     })
     .catch((e) => {
       console.log(e);
@@ -87,7 +95,9 @@ const loginUser = (req, res) => {
       res.send({ token });
     })
     .catch((e) => {
-      findByIdItemError(req, res, e);
+      return res
+        .status(errors.UNAUTHORIZED)
+        .send({ message: "User not authorized" });
     });
 };
 
@@ -111,7 +121,7 @@ const updateUser = (req, res) => {
         const err = new Error("User not found");
         err.status = errors.NOT_FOUND;
         err.name = "NotFound";
-        throw err;
+        return res.status(errors.NOT_FOUND).send({ message: "User not found" });
       }
       res.send({ data: { user, message: "Username updated successfully" } });
     })

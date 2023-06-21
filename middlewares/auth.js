@@ -13,7 +13,9 @@ const authorization = (req, res, next) => {
     const err = new Error("Authorization Error");
     err.status = errors.UNAUTHORIZED;
     err.name = "Unauthorized";
-    throw err;
+    return res
+      .status(errors.UNAUTHORIZED)
+      .send({ message: "Authorization Error" });
   }
   const token = authorization.replace("Bearer ", "");
 
@@ -21,7 +23,9 @@ const authorization = (req, res, next) => {
     const payload = jwt.verify(token, JWT_SECRET);
     req.user = payload;
   } catch (err) {
-    next(err);
+    return res
+      .status(errors.UNAUTHORIZED)
+      .send({ message: "Authorization Error" });
   }
   next();
 };

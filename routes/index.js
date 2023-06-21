@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const clothingItem = require("./clothingitem");
 const user = require("./user");
-const { ERROR_404 } = require("../utils/errors");
+const { errors } = require("../utils/errors");
 const { loginUser, createUser } = require("../controllers/user");
 
 router.use("/items", clothingItem);
@@ -10,7 +10,7 @@ router.post("/signin", loginUser);
 router.post("/signup", createUser);
 
 router.use((req, res) => {
-  res.status(ERROR_404).send({
+  res.status(errors.NOT_FOUND).send({
     message: "Router not found",
   });
 });

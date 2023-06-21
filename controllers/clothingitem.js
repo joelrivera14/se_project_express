@@ -1,32 +1,36 @@
 const ClothingItem = require("../models/clothingitem");
-const { ERROR_400, ERROR_404, ERROR_500, errors } = require("../utils/errors");
+const { errors } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
   if (err.name === "ValidationError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating an item.",
     });
   }
   if (err.name === "CastError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid ID.",
     });
   }
-  return res.status(ERROR_500).send({ message: "An error has occurred" });
+  return res
+    .status(errors.SERVER_ERROR)
+    .send({ message: "An error has occurred" });
 };
 
 const findByIdItemError = (req, res, err) => {
   if (err.name === "CastError" || err.name === "ValidationError") {
-    return res.status(ERROR_400).send({
+    return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating an item.",
     });
   }
   if (err.name === "DocumentNotFoundError") {
-    return res.status(ERROR_404).send({
+    return res.status(errors.NOT_FOUND).send({
       message: "Invalid ID.",
     });
   }
-  return res.status(ERROR_500).send({ message: "An error has occurred" });
+  return res
+    .status(errors.SERVER_ERROR)
+    .send({ message: "An error has occurred" });
 };
 
 const createItem = (req, res) => {
@@ -63,15 +67,16 @@ const updateItems = (req, res) => {
 
 const deleteItems = (req, res) => {
   const { itemId } = req.params;
-
-  ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.find(itemId)
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
         const err = new Error("You are not authorized to delete this item");
         err.status = errors.FORBIDDEN;
         err.name = "Forbidden";
-        throw err;
+        return res
+          .status(errors.FORBIDDEN)
+          .send({ message: "You are not authorized to delete this item" });
       }
       return item.deleteOne().then(() => {
         res.send({ message: "Item removed" });
