@@ -3,21 +3,14 @@ const { JWT_SECRET } = require("../utils/config");
 const { errors } = require("../utils/errors");
 
 const authorization = (req, res, next) => {
-  const { authorization } = req.headers;
+  const auth = req.headers.authorization;
 
-  if (
-    !authorization ||
-    typeof authorization !== "string" ||
-    !authorization.startsWith("Bearer ")
-  ) {
-    const err = new Error("Authorization Error");
-    err.status = errors.UNAUTHORIZED;
-    err.name = "Unauthorized";
+  if (!auth || typeof auth !== "string" || !auth.startsWith("Bearer ")) {
     return res
       .status(errors.UNAUTHORIZED)
       .send({ message: "Authorization Error" });
   }
-  const token = authorization.replace("Bearer ", "");
+  const token = auth.replace("Bearer ", "");
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
@@ -27,7 +20,7 @@ const authorization = (req, res, next) => {
       .status(errors.UNAUTHORIZED)
       .send({ message: "Authorization Error" });
   }
-  next();
+  return next();
 };
 
 module.exports = {

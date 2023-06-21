@@ -2,7 +2,6 @@ const router = require("express").Router();
 const {
   createItem,
   getItems,
-  updateItems,
   deleteItems,
   likeItem,
   disLikeItem,

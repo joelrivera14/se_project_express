@@ -67,13 +67,10 @@ const updateItems = (req, res) => {
 
 const deleteItems = (req, res) => {
   const { itemId } = req.params;
-  ClothingItem.find(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
     .then((item) => {
       if (String(item.owner) !== req.user._id) {
-        const err = new Error("You are not authorized to delete this item");
-        err.status = errors.FORBIDDEN;
-        err.name = "Forbidden";
         return res
           .status(errors.FORBIDDEN)
           .send({ message: "You are not authorized to delete this item" });

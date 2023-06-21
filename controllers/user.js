@@ -61,25 +61,19 @@ const createUser = (req, res) => {
   User.findOne({ email })
     .then((previousUser) => {
       if (previousUser) {
-        const userError = new Error("Email already exist");
-        userError.status = errors.DUPLICATE;
-        userError.name = "Duplicate";
         return res
           .status(errors.DUPLICATE)
           .send({ message: "Email already exist" });
       }
       return bcrypt.hash(password, 10);
     })
-    .then((hash) => {
-      return User.create({ name, avatar, email, password: hash });
-    })
+    .then((hash) => User.create({ name, avatar, email, password: hash }))
     .then((user) => {
       res.send({
         data: { name: user.name, avatar: user.avatar, email: user.email },
       });
     })
     .catch((e) => {
-      console.log(e);
       regularItemError(req, res, e);
     });
 };
@@ -94,11 +88,9 @@ const loginUser = (req, res) => {
       });
       res.send({ token });
     })
-    .catch((e) => {
-      return res
-        .status(errors.UNAUTHORIZED)
-        .send({ message: "User not authorized" });
-    });
+    .catch(() =>
+      res.status(errors.UNAUTHORIZED).send({ message: "User not authorized" })
+    );
 };
 
 const getCurrentUser = (req, res) => {
@@ -118,12 +110,11 @@ const updateUser = (req, res) => {
   })
     .then((user) => {
       if (!user) {
-        const err = new Error("User not found");
-        err.status = errors.NOT_FOUND;
-        err.name = "NotFound";
         return res.status(errors.NOT_FOUND).send({ message: "User not found" });
       }
-      res.send({ data: { user, message: "Username updated successfully" } });
+      return res.send({
+        data: { user, message: "Username updated successfully" },
+      });
     })
     .catch((e) => {
       regularItemError(req, res, e);
