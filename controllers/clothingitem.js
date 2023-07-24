@@ -2,6 +2,7 @@ const ClothingItem = require("../models/clothingitem");
 const { errors } = require("../utils/errors");
 
 const regularItemError = (req, res, err) => {
+  console.error(err);
   if (err.name === "ValidationError") {
     return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating an item.",
@@ -34,9 +35,9 @@ const findByIdItemError = (req, res, err) => {
 };
 
 const createItem = (req, res) => {
-  const { name, weather, imageUrl } = req.body;
+  const { name, weather, imageURL } = req.body;
 
-  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+  ClothingItem.create({ name, weather, imageURL, owner: req.user._id })
     .then((item) => {
       res.send({ data: item });
     })
@@ -91,8 +92,13 @@ const likeItem = (req, res) => {
     { new: true }
   )
     .orFail()
-    .then(() =>
-      res.status(200).send({ message: "Item has successfully been liked" })
+    .then(
+      (item) => {
+        res.send({ data: item });
+      }
+      // res
+      // .status(200)
+      // .send({ message: "Item has successfully been liked", ...data })
     )
     .catch((e) => {
       findByIdItemError(req, res, e);

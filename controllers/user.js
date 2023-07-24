@@ -5,6 +5,7 @@ const { errors } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
 
 const regularItemError = (req, res, err) => {
+  console.error(err);
   if (err.name === "ValidationError") {
     return res.status(errors.BAD_REQUEST).send({
       message: "Invalid data passed for creating or updating a user.",
@@ -61,9 +62,9 @@ const createUser = (req, res) => {
   User.findOne({ email })
     .then((previousUser) => {
       if (previousUser) {
-        return res
-          .status(errors.DUPLICATE)
-          .send({ message: "Email already exist" });
+        const error = new Error("this a duplicate");
+        error.status = errors.DUPLICATE;
+        throw error;
       }
       return bcrypt.hash(password, 10);
     })
@@ -74,7 +75,12 @@ const createUser = (req, res) => {
       });
     })
     .catch((e) => {
-      regularItemError(req, res, e);
+      console.log(e);
+      if (e.status == errors.DUPLICATE) {
+        res.status(409).send({ message: "this is a duplicate" });
+      } else {
+        regularItemError(req, res, e);
+      }
     });
 };
 
@@ -88,9 +94,12 @@ const loginUser = (req, res) => {
       });
       res.send({ token });
     })
-    .catch(() =>
-      res.status(errors.UNAUTHORIZED).send({ message: "User not authorized" })
-    );
+    .catch((e) => {
+      console.log(e);
+      return res
+        .status(errors.UNAUTHORIZED)
+        .send({ message: "User not authorized" });
+    });
 };
 
 const getCurrentUser = (req, res) => {
