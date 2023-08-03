@@ -1,40 +1,10 @@
 const ClothingItem = require("../models/clothingitem");
 const { errors } = require("../utils/errors");
+const BadRequestError = require("../errors/bad-request-error");
+const NotFoundError = require("../errors/not-found-error");
+const ForbiddenError = require("../errors/forbidden-error");
 
-const regularItemError = (req, res, err) => {
-  console.error(err);
-  if (err.name === "ValidationError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid data passed for creating or updating an item.",
-    });
-  }
-  if (err.name === "CastError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid ID.",
-    });
-  }
-  return res
-    .status(errors.SERVER_ERROR)
-    .send({ message: "An error has occurred" });
-};
-
-const findByIdItemError = (req, res, err) => {
-  if (err.name === "CastError" || err.name === "ValidationError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid data passed for creating or updating an item.",
-    });
-  }
-  if (err.name === "DocumentNotFoundError") {
-    return res.status(errors.NOT_FOUND).send({
-      message: "Invalid ID.",
-    });
-  }
-  return res
-    .status(errors.SERVER_ERROR)
-    .send({ message: "An error has occurred" });
-};
-
-const createItem = (req, res) => {
+const createItem = (req, res, next) => {
   const { name, weather, imageUrl } = req.body;
 
   ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
@@ -42,19 +12,20 @@ const createItem = (req, res) => {
       res.send({ data: item });
     })
     .catch((e) => {
-      regularItemError(req, res, e);
+      next(e);
     });
 };
 
-const getItems = (req, res) => {
+const getItems = (req, res, next) => {
   ClothingItem.find({})
     .then((items) => res.status(200).send(items))
     .catch((e) => {
-      regularItemError(req, res, e);
+      // regularItemError(req, res, e);
+      next(e);
     });
 };
 
-const updateItems = (req, res) => {
+const updateItems = (req, res, next) => {
   const { itemId } = req.params;
   const { imageUrl } = req.body;
 
@@ -62,11 +33,12 @@ const updateItems = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
-      regularItemError(req, res, e);
+      // regularItemError(req, res, e);
+      next(e);
     });
 };
 
-const deleteItems = (req, res) => {
+const deleteItems = (req, res, next) => {
   const { itemId } = req.params;
   ClothingItem.findById(itemId)
     .orFail()
@@ -81,11 +53,12 @@ const deleteItems = (req, res) => {
       });
     })
     .catch((e) => {
-      findByIdItemError(req, res, e);
+      // findByIdItemError(req, res, e);
+      next(e);
     });
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -101,10 +74,11 @@ const likeItem = (req, res) => {
       // .send({ message: "Item has successfully been liked", ...data })
     )
     .catch((e) => {
-      findByIdItemError(req, res, e);
+      // findByIdItemError(req, res, e);
+      next(e);
     });
 };
-const disLikeItem = (req, res) => {
+const disLikeItem = (req, res, next) => {
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -113,7 +87,8 @@ const disLikeItem = (req, res) => {
     .orFail()
     .then((item) => res.status(200).send({ data: item }))
     .catch((e) => {
-      findByIdItemError(req, res, e);
+      // findByIdItemError(req, res, e);
+      next(e);
     });
 };
 
@@ -125,3 +100,36 @@ module.exports = {
   likeItem,
   disLikeItem,
 };
+
+// const regularItemError = (req, res, err) => {
+//   console.error(err);
+//   if (err.name === "ValidationError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid data passed for creating or updating an item.",
+//     });
+//   }
+//   if (err.name === "CastError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid ID.",
+//     });
+//   }
+//   return res
+//     .status(errors.SERVER_ERROR)
+//     .send({ message: "An error has occurred" });
+// };
+
+// const findByIdItemError = (req, res, err) => {
+//   if (err.name === "CastError" || err.name === "ValidationError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid data passed for creating or updating an item.",
+//     });
+//   }
+//   if (err.name === "DocumentNotFoundError") {
+//     return res.status(errors.NOT_FOUND).send({
+//       message: "Invalid ID.",
+//     });
+//   }
+//   return res
+//     .status(errors.SERVER_ERROR)
+//     .send({ message: "An error has occurred" });
+// };
