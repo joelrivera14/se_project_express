@@ -3,67 +3,34 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const { errors } = require("../utils/errors");
 const { JWT_SECRET } = require("../utils/config");
+const { ConflictError } = require("../errors/conflict-error");
 
-const regularItemError = (req, res, err) => {
-  console.error(err);
-  if (err.name === "ValidationError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid data passed for creating or updating a user.",
-    });
-  }
-  if (err.name === "CastError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid ID.",
-    });
-  }
-  return res
-    .status(errors.SERVER_ERROR)
-    .send({ message: "An error has occurred" });
-};
-
-const findByIdItemError = (req, res, err) => {
-  if (err.name === "CastError" || err.name === "ValidationError") {
-    return res.status(errors.BAD_REQUEST).send({
-      message: "Invalid data passed for creating or updating a user.",
-    });
-  }
-  if (err.name === "DocumentNotFoundError") {
-    return res.status(errors.NOT_FOUND).send({
-      message: "Invalid ID.",
-    });
-  }
-  return res
-    .status(errors.SERVER_ERROR)
-    .send({ message: "An error has occurred" });
-};
-
-const getUser = (req, res) => {
+const getUser = (req, res, next) => {
   User.find({})
     .then((users) => res.status(200).send(users))
     .catch((e) => {
-      regularItemError(req, res, e);
+      next(e);
     });
 };
 
-const getUserId = (req, res) => {
+const getUserId = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
     .orFail()
     .then((user) => res.status(200).send({ data: user }))
     .catch((e) => {
-      findByIdItemError(req, res, e);
+      next(e);
     });
 };
 
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
   User.findOne({ email })
     .then((previousUser) => {
       if (previousUser) {
-        const error = new Error("this a duplicate");
-        error.status = errors.DUPLICATE;
+        const error = new ConflictError("this is a duplicate");
         throw error;
       }
       return bcrypt.hash(password, 10);
@@ -75,16 +42,11 @@ const createUser = (req, res) => {
       });
     })
     .catch((e) => {
-      console.log(e);
-      if (e.status == errors.DUPLICATE) {
-        res.status(409).send({ message: "this is a duplicate" });
-      } else {
-        regularItemError(req, res, e);
-      }
+      next(e);
     });
 };
 
-const loginUser = (req, res) => {
+const loginUser = (req, res, next) => {
   const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
@@ -95,21 +57,18 @@ const loginUser = (req, res) => {
       res.send({ token });
     })
     .catch((e) => {
-      console.log(e);
-      return res
-        .status(errors.UNAUTHORIZED)
-        .send({ message: "User not authorized" });
+      next(e);
     });
 };
 
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail()
     .then((user) => res.send({ user }))
-    .catch((e) => findByIdItemError(req, res, e));
+    .catch((e) => next(e));
 };
 
-const updateUser = (req, res) => {
+const updateUser = (req, res, next) => {
   const { name, avatar } = req.body;
   const update = { name, avatar };
 
@@ -126,7 +85,7 @@ const updateUser = (req, res) => {
       });
     })
     .catch((e) => {
-      regularItemError(req, res, e);
+      next(e);
     });
 };
 
@@ -138,3 +97,36 @@ module.exports = {
   getCurrentUser,
   updateUser,
 };
+
+// const regularItemError = (req, res, err) => {
+//   console.error(err);
+//   if (err.name === "ValidationError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid data passed for creating or updating a user.",
+//     });
+//   }
+//   if (err.name === "CastError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid ID.",
+//     });
+//   }
+//   return res
+//     .status(errors.SERVER_ERROR)
+//     .send({ message: "An error has occurred" });
+// };
+
+// const findByIdItemError = (req, res, err) => {
+//   if (err.name === "CastError" || err.name === "ValidationError") {
+//     return res.status(errors.BAD_REQUEST).send({
+//       message: "Invalid data passed for creating or updating a user.",
+//     });
+//   }
+//   if (err.name === "DocumentNotFoundError") {
+//     return res.status(errors.NOT_FOUND).send({
+//       message: "Invalid ID.",
+//     });
+//   }
+//   return res
+//     .status(errors.SERVER_ERROR)
+//     .send({ message: "An error has occurred" });
+// };
