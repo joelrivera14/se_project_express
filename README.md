@@ -1,1 +1,2 @@
-this is project 13, the back-end for project 10-11 through the use of routes, controllers, error codes and authorization. within this project, there was use of Express, monogoDB and mongoose as well as third party websites like postman to help test server response.
+this is project 15, where we learned to upload our backend and frontend code to its server. the website now occupies its own domain.
+front end- https://github.com/joelrivera14/se_project_react
